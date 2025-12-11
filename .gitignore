@@ -227,3 +227,4 @@ Desktop.ini
 # JetBrains Rider
 .idea/
 *.sln.iml
+*.iml
