@@ -5,7 +5,7 @@
              xmlns:models="clr-namespace:HanyFokVan.Mobile.Models"
              x:Class="HanyFokVan.Mobile.MainPage"
              x:DataType="vm:MainViewModel"
-             Title="Odorheiu Secuiesc Weather">
+             Title="Hány fok van Udvarhelyen?">
 
     <Grid RowDefinitions="Auto, *">
         <!-- Header / Refresh Button -->

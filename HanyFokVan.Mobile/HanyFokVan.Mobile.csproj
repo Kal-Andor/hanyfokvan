@@ -21,10 +21,10 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>HanyFokVan.Mobile</ApplicationTitle>
+		<ApplicationTitle>HanyFokVan</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.hanyfokvan.mobile</ApplicationId>
+		<ApplicationId>com.companyname.hanyfokvan</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
