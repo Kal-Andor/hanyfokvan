@@ -2,7 +2,7 @@ namespace HanyFokVan.Mobile;
 public static class Constants
 {
     // TODO: Update with your actual Render.com URL
-    public const string ProductionUrl = "https://your-app-name.onrender.com";
+    public const string ProductionUrl = "https://hanyfokvan-api.onrender.com";
 
     public static string BaseUrl
     {
