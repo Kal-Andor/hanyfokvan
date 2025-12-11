@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:HanyFokVan.Mobile.ViewModels"
+             xmlns:models="clr-namespace:HanyFokVan.Mobile.Models"
+             x:Class="HanyFokVan.Mobile.MainPage"
+             x:DataType="vm:MainViewModel"
+             Title="Odorheiu Secuiesc Weather">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header / Refresh Button -->
+        <Button Text="Refresh Data"
+                Command="{Binding RefreshCommand}"
+                IsEnabled="{Binding IsNotRefreshing}"
+                Margin="10"
+                Grid.Row="0"/>
+
+        <ActivityIndicator IsRunning="{Binding IsRefreshing}"
+                           IsVisible="{Binding IsRefreshing}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           Grid.Row="1"
+                           ZIndex="1"/>
+
+        <!-- Data List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Items}"
+                        SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="No data loaded. Tap Refresh."
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:WeatherData">
+                    <Frame Margin="10" Padding="15" CornerRadius="10">
+                        <StackLayout>
+                            <Label Text="{Binding Source}"
+                                   FontSize="Caption"
+                                   TextColor="Gray" />
+                            <Label Text="{Binding TemperatureC, StringFormat='{0:F1}°C'}"
+                                   FontSize="48"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            <Label Text="{Binding Location}"
+                                   FontSize="Body" />
+                            <Label Text="{Binding FetchedAt, StringFormat='Updated: {0:HH:mm}'}"
+                                   FontSize="Caption"
+                                   HorizontalOptions="End" />
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+</ContentPage>
