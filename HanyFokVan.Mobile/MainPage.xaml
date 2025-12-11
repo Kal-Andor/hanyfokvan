@@ -33,7 +33,10 @@
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:WeatherData">
-                    <Frame Margin="10" Padding="15" CornerRadius="10">
+                    <Frame Margin="10"
+                           Padding="15"
+                           CornerRadius="10"
+                           BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                         <StackLayout>
                             <Label Text="{Binding Source}"
                                    FontSize="Caption"
