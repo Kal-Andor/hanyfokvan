@@ -32,9 +32,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             // Determine URL based on device
-            string baseUrl = DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2:5286" 
-                : "http://localhost:5286";
+            string baseUrl = Constants.BaseUrl;
 
              // Note: using HTTP to avoid SSL certificate issues in emulator for MVP
              // If the API enforces HTTPS, we need the HTTPS port (usually 7xxx) and trust certificates.
