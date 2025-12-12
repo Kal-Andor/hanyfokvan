@@ -25,28 +25,78 @@ public class WeatherFetcher : IWeatherFetcher
 
     public async Task<List<WeatherData>> FetchCurrentWeatherAsync()
     {
-        // MVP: Returns dummy data for structure verification. 
-        // Real implementation will use HtmlAgilityPack to parse Wunderground/Sensor.Community.
-        
-        var dummyData = new List<WeatherData>
-        {
-            new WeatherData
-            {
-                TemperatureC = 12.5,
-                Source = "Wunderground (IODORH15)",
-                Location = "Odorheiu Secuiesc",
-                FetchedAt = DateTime.Now
-            },
-             new WeatherData
-            {
-                TemperatureC = 11.8,
-                Source = "Sensor.Community",
-                Location = "Odorheiu Secuiesc (Center)",
-                FetchedAt = DateTime.Now
-            }
-        };
+        // Odorheiu Secuiesc coordinates
+        double lat = 46.30;
+        double lon = 25.30;
 
-        return await Task.FromResult(dummyData);
+        try 
+        {
+            var stations = await GetNearbyStationsAsync(lat, lon);
+            var temperatures = new List<double>();
+            
+            // Limit to avoid hitting rate limits if many stations exist
+            foreach (var station in stations.Take(6))
+            {
+                try 
+                {
+                    double? temp = await FetchStationObservationAsync(station.Id);
+                    if (temp.HasValue)
+                    {
+                        temperatures.Add(temp.Value);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue
+                    Console.WriteLine($"Failed to fetch data for {station.Id}: {ex.Message}");
+                }
+            }
+
+            if (temperatures.Count != 0)
+            {
+                double meanTemp = temperatures.Average();
+                return
+                [
+                    new WeatherData
+                    {
+                        TemperatureC = Math.Round(meanTemp, 1),
+                        Source = $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations)",
+                        Location = "Odorheiu Secuiesc",
+                        FetchedAt = DateTime.Now,
+                    }
+                ];
+            }
+        }
+        catch (Exception ex)
+        {
+             // Fallback or rethrow
+             Console.WriteLine($"Error calculating weather: {ex.Message}");
+        }
+
+        return new List<WeatherData>();
+    }
+
+    private async Task<double?> FetchStationObservationAsync(string stationId)
+    {
+         if (string.IsNullOrWhiteSpace(_apiKey)) return null;
+
+         var url = $"https://api.weather.com/v2/pws/observations/current?stationId={stationId}&format=json&units=m&numericPrecision=decimal&apiKey={_apiKey}";
+         
+         using var response = await _httpClient.GetAsync(url);
+         if (!response.IsSuccessStatusCode) return null;
+
+         var json = await response.Content.ReadAsStringAsync();
+         using var doc = System.Text.Json.JsonDocument.Parse(json);
+         
+         if (doc.RootElement.TryGetProperty("observations", out var obs) && obs.GetArrayLength() > 0)
+         {
+             var first = obs[0];
+             if (first.TryGetProperty("metric", out var metric) && metric.TryGetProperty("temp", out var tempEl))
+             {
+                 if (tempEl.TryGetDouble(out var temp)) return temp;
+             }
+         }
+         return null;
     }
 
     public async Task<List<NearbyStation>> GetNearbyStationsAsync(double latitude, double longitude, CancellationToken cancellationToken = default)
