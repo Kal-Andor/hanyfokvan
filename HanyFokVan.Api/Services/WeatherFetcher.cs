@@ -18,9 +18,7 @@ public class WeatherFetcher : IWeatherFetcher
     public WeatherFetcher(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        _apiKey =
-            configuration["Weather:ApiKey"]
-            ?? Environment.GetEnvironmentVariable("WEATHER_API_KEY");
+        _apiKey = Environment.GetEnvironmentVariable("WEATHER_API_KEY");
     }
 
     public async Task<List<WeatherData>> FetchCurrentWeatherAsync()
