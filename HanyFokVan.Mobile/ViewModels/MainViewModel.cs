@@ -14,14 +14,14 @@ public partial class MainViewModel : ObservableObject
     private bool _isAppForegrounded = true;
     
     [ObservableProperty]
-    private ObservableCollection<WeatherData> items = new();
+    private ObservableCollection<WeatherData> _items = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotRefreshing))]
-    private bool isRefreshing;
+    private bool _isRefreshing;
     
     [ObservableProperty]
-    private string lastUpdatedText = "No data loaded";
+    private string _lastUpdatedText = "No data loaded";
     
     public bool IsNotRefreshing => !IsRefreshing;
 
