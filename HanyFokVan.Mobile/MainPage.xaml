@@ -8,53 +8,65 @@
              Title="Hány fok van Udvarhelyen?">
 
     <Grid RowDefinitions="Auto, *">
-        <!-- Header / Refresh Button -->
-        <Button Text="Refresh Data"
-                Command="{Binding RefreshCommand}"
-                IsEnabled="{Binding IsNotRefreshing}"
-                Margin="10"
-                Grid.Row="0"/>
+        <!-- Header with last updated info -->
+        <StackLayout Grid.Row="0" 
+                     Orientation="Horizontal" 
+                     HorizontalOptions="FillAndExpand"
+                     Margin="10,5">
+            <Label Text="{Binding LastUpdatedText}"
+                   FontSize="Caption"
+                   TextColor="Gray"
+                   VerticalOptions="Center"
+                   HorizontalOptions="StartAndExpand"/>
+            
+            <!-- Discrete refresh indicator -->
+            <ActivityIndicator IsRunning="{Binding IsRefreshing}"
+                               IsVisible="{Binding IsRefreshing}"
+                               WidthRequest="20"
+                               HeightRequest="20"
+                               VerticalOptions="Center"
+                               HorizontalOptions="End"/>
+        </StackLayout>
 
-        <ActivityIndicator IsRunning="{Binding IsRefreshing}"
-                           IsVisible="{Binding IsRefreshing}"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           Grid.Row="1"
-                           ZIndex="1"/>
-
-        <!-- Data List -->
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Items}"
-                        SelectionMode="None">
-            <CollectionView.EmptyView>
-                <Label Text="No data loaded. Tap Refresh."
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:WeatherData">
-                    <Frame Margin="10"
-                           Padding="15"
-                           CornerRadius="10"
-                           BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
-                        <StackLayout>
-                            <Label Text="{Binding Source}"
-                                   FontSize="Caption"
-                                   TextColor="Gray" />
-                            <Label Text="{Binding TemperatureC, StringFormat='{0:F1}°C'}"
-                                   FontSize="48"
-                                   FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
-                            <Label Text="{Binding Location}"
-                                   FontSize="Body" />
-                            <Label Text="{Binding FetchedAt, StringFormat='Updated: {0:HH:mm}'}"
-                                   FontSize="Caption"
-                                   HorizontalOptions="End" />
-                        </StackLayout>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- Data List with Pull-to-Refresh -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding Items}"
+                            SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <StackLayout Padding="20">
+                        <Label Text="No data loaded. Pull down to refresh."
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               FontSize="Body"/>
+                    </StackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:WeatherData">
+                        <Frame Margin="10,5"
+                               Padding="15"
+                               CornerRadius="10"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
+                            <StackLayout>
+                                <Label Text="{Binding Source}"
+                                       FontSize="Caption"
+                                       TextColor="Gray" />
+                                <Label Text="{Binding TemperatureC, StringFormat='{0:F1}°C'}"
+                                       FontSize="48"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                <Label Text="{Binding Location}"
+                                       FontSize="Body" />
+                                <Label Text="{Binding FetchedAt, StringFormat='Updated: {0:HH:mm}'}"
+                                       FontSize="Caption"
+                                       HorizontalOptions="End" />
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
     </Grid>
 
 </ContentPage>
