@@ -11,7 +11,6 @@ public interface IWeatherFetcher
 
 public class WeatherFetcher : IWeatherFetcher
 {
-    private const string WundergroundUrl = "https://www.wunderground.com/dashboard/pws/IODORH15"; // Example
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
 

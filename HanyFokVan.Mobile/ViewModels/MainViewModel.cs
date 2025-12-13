@@ -50,10 +50,6 @@ public partial class MainViewModel : ObservableObject
             // Determine URL based on device
             string baseUrl = Constants.BaseUrl;
 
-             // Note: using HTTP to avoid SSL certificate issues in emulator for MVP
-             // If the API enforces HTTPS, we need the HTTPS port (usually 7xxx) and trust certificates.
-             // I'll assume HTTP is available or I will fix the port.
-
             var data = await _httpClient.GetFromJsonAsync<List<WeatherData>>($"{baseUrl}/Weather/current");
             
             if (data != null)
