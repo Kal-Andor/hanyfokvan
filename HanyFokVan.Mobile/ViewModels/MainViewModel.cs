@@ -4,8 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using HanyFokVan.Mobile.Models;
 using System.Net.Http.Json;
 using System.Diagnostics;
-using System.Timers;
-using Microsoft.Maui.Devices;
 
 namespace HanyFokVan.Mobile.ViewModels;
 
