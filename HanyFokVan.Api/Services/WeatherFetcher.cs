@@ -5,7 +5,7 @@ namespace HanyFokVan.Api.Services;
 
 public interface IWeatherFetcher
 {
-    Task<List<WeatherData>> FetchCurrentWeatherAsync();
+    Task<List<WeatherData>> FetchCurrentWeatherAsync(double? latitude = null, double? longitude = null, CancellationToken cancellationToken = default);
     Task<List<NearbyStation>> GetNearbyStationsAsync(double latitude, double longitude, CancellationToken cancellationToken = default);
 }
 
@@ -20,15 +20,15 @@ public class WeatherFetcher : IWeatherFetcher
         _apiKey = Environment.GetEnvironmentVariable("WEATHER_API_KEY");
     }
 
-    public async Task<List<WeatherData>> FetchCurrentWeatherAsync()
+    public async Task<List<WeatherData>> FetchCurrentWeatherAsync(double? latitude = null, double? longitude = null, CancellationToken cancellationToken = default)
     {
-        // Odorheiu Secuiesc coordinates
-        double lat = 46.30;
-        double lon = 25.30;
+        // Default to Odorheiu Secuiesc coordinates if not provided
+        double lat = latitude ?? 46.30;
+        double lon = longitude ?? 25.30;
 
         try 
         {
-            var stations = await GetNearbyStationsAsync(lat, lon);
+            var stations = await GetNearbyStationsAsync(lat, lon, cancellationToken);
             var temperatures = new List<double>();
             
             // Limit to avoid hitting rate limits if many stations exist
@@ -52,13 +52,19 @@ public class WeatherFetcher : IWeatherFetcher
             if (temperatures.Count != 0)
             {
                 double meanTemp = temperatures.Average();
+                var culture = System.Globalization.CultureInfo.InvariantCulture;
+                bool isDefault = Math.Abs(lat - 46.30) < 0.0001 && Math.Abs(lon - 25.30) < 0.0001;
+                string locationLabel = isDefault ? "Odorheiu Secuiesc" : $"{lat.ToString("F4", culture)},{lon.ToString("F4", culture)}";
+                string sourceLabel = isDefault
+                    ? $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations)"
+                    : $"Nearby mean (Mean of {temperatures.Count} stations)";
                 return
                 [
                     new WeatherData
                     {
                         TemperatureC = Math.Round(meanTemp, 1),
-                        Source = $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations)",
-                        Location = "Odorheiu Secuiesc",
+                        Source = sourceLabel,
+                        Location = locationLabel,
                         FetchedAt = DateTime.Now,
                     }
                 ];

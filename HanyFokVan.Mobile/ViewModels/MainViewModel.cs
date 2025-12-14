@@ -4,6 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 using HanyFokVan.Mobile.Models;
 using System.Net.Http.Json;
 using System.Diagnostics;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices.Sensors;
+using System.Globalization;
 
 namespace HanyFokVan.Mobile.ViewModels;
 
@@ -47,8 +50,17 @@ public partial class MainViewModel : ObservableObject
         {
             // Determine URL based on device
             string baseUrl = Constants.BaseUrl;
+            string url = $"{baseUrl}/Weather/current";
 
-            var data = await _httpClient.GetFromJsonAsync<List<WeatherData>>($"{baseUrl}/Weather/current");
+            // Try to get device location to pass as query parameters
+            var coords = await TryGetLocationAsync();
+            if (coords.HasValue)
+            {
+                var (lat, lon) = coords.Value;
+                url = $"{url}?lat={lat.ToString(CultureInfo.InvariantCulture)}&lon={lon.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            var data = await _httpClient.GetFromJsonAsync<List<WeatherData>>(url);
             
             if (data != null)
             {
@@ -74,6 +86,53 @@ public partial class MainViewModel : ObservableObject
         {
             IsRefreshing = false;
         }
+    }
+
+    private async Task<(double lat, double lon)?> TryGetLocationAsync()
+    {
+        try
+        {
+            // Check and request location permission
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                if (status != PermissionStatus.Granted)
+                {
+                    return null; // Permission denied; fallback to server default
+                }
+            }
+            // TODO: refine this, investigate how long the cache lasts
+#if !DEBUG
+            // Try to get cached location first for speed
+            var cached = await Geolocation.Default.GetLastKnownLocationAsync();
+            if (cached != null)
+            {
+                return (cached.Latitude, cached.Longitude);
+            }
+#endif
+            
+
+            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
+            var current = await Geolocation.Default.GetLocationAsync(request);
+            if (current != null)
+            {
+                return (current.Latitude, current.Longitude);
+            }
+        }
+        catch (FeatureNotSupportedException)
+        {
+            // Device doesn't support geolocation
+        }
+        catch (PermissionException)
+        {
+            // Permission denied
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Location fetch failed: {ex.Message}");
+        }
+        return null;
     }
 
     private void SetupLifecycleHandlers()

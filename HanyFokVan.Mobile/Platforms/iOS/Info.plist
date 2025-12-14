@@ -28,5 +28,11 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+    
+    <!-- Location permission descriptions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app uses your location to fetch the nearest weather stations and show the current temperature.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app uses your location to fetch the nearest weather stations and show the current temperature.</string>
 </dict>
 </plist>

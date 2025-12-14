@@ -41,6 +41,8 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <!-- Location capability for geolocation -->
+    <uap:Capability Name="location" />
   </Capabilities>
 
 </Package>

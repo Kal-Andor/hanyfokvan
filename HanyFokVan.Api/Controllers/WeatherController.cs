@@ -18,10 +18,28 @@ public class WeatherController : ControllerBase
     }
 
     [HttpGet("current")]
-    public async Task<ActionResult<List<WeatherData>>> GetCurrentWeather()
+    public async Task<ActionResult<List<WeatherData>>> GetCurrentWeather([FromQuery] double? lat, [FromQuery] double? lon, CancellationToken ct)
     {
-        _logger.LogInformation("Fetching current weather data...");
-        var data = await _weatherFetcher.FetchCurrentWeatherAsync();
+        if (lat.HasValue ^ lon.HasValue)
+        {
+            return BadRequest("Both 'lat' and 'lon' must be provided together, or neither.");
+        }
+
+        if (lat.HasValue && lon.HasValue && (double.IsNaN(lat.Value) || double.IsNaN(lon.Value)))
+        {
+            return BadRequest("Invalid coordinates.");
+        }
+
+        if (lat.HasValue && lon.HasValue)
+        {
+            _logger.LogInformation("Fetching current weather data for lat={Lat}, lon={Lon}...", lat, lon);
+        }
+        else
+        {
+            _logger.LogInformation("Fetching current weather data for default location...");
+        }
+
+        var data = await _weatherFetcher.FetchCurrentWeatherAsync(lat, lon, ct);
         return Ok(data);
     }
 
