@@ -19,4 +19,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 
+// Simple health check endpoint
+app.MapGet("/healtz", () => "OK");
+
 app.Run();
