@@ -67,12 +67,15 @@ public class WeatherFetcher : IWeatherFetcher
     private WeatherData AggregateObservations(List<StationObservation> observations, double lat, double lon)
     {
         // Extract valid values for each metric
-        var temperatures = observations.Where(o => o.TemperatureC.HasValue)
-                                      .Select(o => o.TemperatureC.Value).ToList();
-        var humidities = observations.Where(o => o.Humidity.HasValue)
-                                    .Select(o => o.Humidity.Value).ToList();
-        var pressures = observations.Where(o => o.PressureMb.HasValue)
-                                   .Select(o => o.PressureMb.Value).ToList();
+        var temperatures = observations.Select(o => o.TemperatureC)
+                                      .Where(t => t.HasValue)
+                                      .Select(t => t!.Value).ToList();
+        var humidities = observations.Select(o => o.Humidity)
+                                    .Where(h => h.HasValue)
+                                    .Select(h => h!.Value).ToList();
+        var pressures = observations.Select(o => o.PressureMb)
+                                   .Where(p => p.HasValue)
+                                   .Select(p => p!.Value).ToList();
 
         // Calculate labels
         var culture = System.Globalization.CultureInfo.InvariantCulture;
