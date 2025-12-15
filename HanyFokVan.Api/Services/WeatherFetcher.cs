@@ -93,9 +93,9 @@ public class WeatherFetcher : IWeatherFetcher
 
          if (!doc.RootElement.TryGetProperty("observations", out var obs) || obs.GetArrayLength() <= 0) return null;
          
-         var first = obs[0];
+         var observation = obs[0];
          
-         if (!first.TryGetProperty("metric", out var metric) ||
+         if (!observation.TryGetProperty("metric", out var metric) ||
              !metric.TryGetProperty("temp", out var tempEl)) 
              return null;
          
