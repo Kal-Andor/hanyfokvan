@@ -90,15 +90,17 @@ public class WeatherFetcher : IWeatherFetcher
 
          var json = await response.Content.ReadAsStringAsync();
          using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+         if (!doc.RootElement.TryGetProperty("observations", out var obs) || obs.GetArrayLength() <= 0) return null;
          
-         if (doc.RootElement.TryGetProperty("observations", out var obs) && obs.GetArrayLength() > 0)
-         {
-             var first = obs[0];
-             if (first.TryGetProperty("metric", out var metric) && metric.TryGetProperty("temp", out var tempEl))
-             {
-                 if (tempEl.TryGetDouble(out var temp)) return temp;
-             }
-         }
+         var first = obs[0];
+         
+         if (!first.TryGetProperty("metric", out var metric) ||
+             !metric.TryGetProperty("temp", out var tempEl)) 
+             return null;
+         
+         if (tempEl.TryGetDouble(out var temp)) return temp;
+         
          return null;
     }
 
