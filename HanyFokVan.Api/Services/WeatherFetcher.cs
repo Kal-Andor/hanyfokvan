@@ -26,20 +26,20 @@ public class WeatherFetcher : IWeatherFetcher
         double lat = latitude ?? 46.30;
         double lon = longitude ?? 25.30;
 
-        try 
+        try
         {
             var stations = await GetNearbyStationsAsync(lat, lon, cancellationToken);
-            var temperatures = new List<double>();
-            
+            var observations = new List<StationObservation>();
+
             // Limit to avoid hitting rate limits if many stations exist
             foreach (var station in stations.Take(6))
             {
-                try 
+                try
                 {
-                    double? temp = await FetchStationObservationAsync(station.Id);
-                    if (temp.HasValue)
+                    var obs = await FetchStationObservationAsync(station.Id);
+                    if (obs != null)
                     {
-                        temperatures.Add(temp.Value);
+                        observations.Add(obs);
                     }
                 }
                 catch (Exception ex)
@@ -49,25 +49,10 @@ public class WeatherFetcher : IWeatherFetcher
                 }
             }
 
-            if (temperatures.Count != 0)
+            if (observations.Count != 0)
             {
-                double meanTemp = temperatures.Average();
-                var culture = System.Globalization.CultureInfo.InvariantCulture;
-                bool isDefault = Math.Abs(lat - 46.30) < 0.0001 && Math.Abs(lon - 25.30) < 0.0001;
-                string locationLabel = isDefault ? "Odorheiu Secuiesc" : $"{lat.ToString("F4", culture)},{lon.ToString("F4", culture)}";
-                string sourceLabel = isDefault
-                    ? $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations)"
-                    : $"Nearby mean (Mean of {temperatures.Count} stations)";
-                return
-                [
-                    new WeatherData
-                    {
-                        TemperatureC = Math.Round(meanTemp, 1),
-                        Source = sourceLabel,
-                        Location = locationLabel,
-                        FetchedAt = DateTime.Now,
-                    }
-                ];
+                var weatherData = AggregateObservations(observations, lat, lon);
+                return [weatherData];
             }
         }
         catch (Exception ex)
@@ -79,12 +64,43 @@ public class WeatherFetcher : IWeatherFetcher
         return new List<WeatherData>();
     }
 
-    private async Task<double?> FetchStationObservationAsync(string stationId)
+    private WeatherData AggregateObservations(List<StationObservation> observations, double lat, double lon)
+    {
+        // Extract valid values for each metric
+        var temperatures = observations.Where(o => o.TemperatureC.HasValue)
+                                      .Select(o => o.TemperatureC.Value).ToList();
+        var humidities = observations.Where(o => o.Humidity.HasValue)
+                                    .Select(o => o.Humidity.Value).ToList();
+        var pressures = observations.Where(o => o.PressureMb.HasValue)
+                                   .Select(o => o.PressureMb.Value).ToList();
+
+        // Calculate labels
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
+        bool isDefault = Math.Abs(lat - 46.30) < 0.0001 && Math.Abs(lon - 25.30) < 0.0001;
+        string locationLabel = isDefault
+            ? "Odorheiu Secuiesc"
+            : $"{lat.ToString("F4", culture)},{lon.ToString("F4", culture)}";
+        string sourceLabel = isDefault
+            ? $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations)"
+            : $"Nearby mean (Mean of {temperatures.Count} stations)";
+
+        return new WeatherData
+        {
+            TemperatureC = Math.Round(temperatures.Average(), 1),
+            Humidity = humidities.Any() ? Math.Round(humidities.Average(), 0) : null,
+            PressureMb = pressures.Any() ? Math.Round(pressures.Average(), 1) : null,
+            Source = sourceLabel,
+            Location = locationLabel,
+            FetchedAt = DateTime.Now,
+        };
+    }
+
+    private async Task<StationObservation?> FetchStationObservationAsync(string stationId)
     {
          if (string.IsNullOrWhiteSpace(_apiKey)) return null;
 
          var url = $"https://api.weather.com/v2/pws/observations/current?stationId={stationId}&format=json&units=m&numericPrecision=decimal&apiKey={_apiKey}";
-         
+
          using var response = await _httpClient.GetAsync(url);
          if (!response.IsSuccessStatusCode) return null;
 
@@ -92,16 +108,27 @@ public class WeatherFetcher : IWeatherFetcher
          using var doc = System.Text.Json.JsonDocument.Parse(json);
 
          if (!doc.RootElement.TryGetProperty("observations", out var obs) || obs.GetArrayLength() <= 0) return null;
-         
+
          var observation = obs[0];
-         
-         if (!observation.TryGetProperty("metric", out var metric) ||
-             !metric.TryGetProperty("temp", out var tempEl)) 
+
+         if (!observation.TryGetProperty("metric", out var metric))
              return null;
-         
-         if (tempEl.TryGetDouble(out var temp)) return temp;
-         
-         return null;
+
+         var result = new StationObservation { StationId = stationId };
+
+         // Temperature (in metric object)
+         if (metric.TryGetProperty("temp", out var tempEl) && tempEl.TryGetDouble(out var temp))
+             result.TemperatureC = temp;
+
+         // Humidity (at the root level of observation)
+         if (observation.TryGetProperty("humidity", out var humEl) && humEl.TryGetDouble(out var hum))
+             result.Humidity = hum;
+
+         // Pressure (in metric object)
+         if (metric.TryGetProperty("pressure", out var pressEl) && pressEl.TryGetDouble(out var press))
+             result.PressureMb = press;
+
+         return result;
     }
 
     public async Task<List<NearbyStation>> GetNearbyStationsAsync(double latitude, double longitude, CancellationToken cancellationToken = default)
