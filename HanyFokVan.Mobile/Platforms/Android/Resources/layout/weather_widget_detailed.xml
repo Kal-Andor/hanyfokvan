@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetDetailedRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp"
+    android:background="@android:color/transparent">
+
+    <!-- Temperature (Main) -->
+    <TextView
+        android:id="@+id/txtTempDetailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="–°C"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:textColor="#FFFFFF"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" />
+
+    <!-- Humidity -->
+    <TextView
+        android:id="@+id/txtHumidityDetailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtTempDetailed"
+        android:layout_alignStart="@id/txtTempDetailed"
+        android:text=""
+        android:textSize="11sp"
+        android:textColor="#CCFFFFFF"
+        android:paddingTop="4dp" />
+
+    <!-- Pressure -->
+    <TextView
+        android:id="@+id/txtPressureDetailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtHumidityDetailed"
+        android:layout_alignStart="@id/txtTempDetailed"
+        android:text=""
+        android:textSize="11sp"
+        android:textColor="#CCFFFFFF"
+        android:paddingTop="2dp" />
+
+    <!-- Location -->
+    <TextView
+        android:id="@+id/txtLocationDetailed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtPressureDetailed"
+        android:layout_alignStart="@id/txtTempDetailed"
+        android:text="Helyszín"
+        android:textSize="12sp"
+        android:textColor="#CCFFFFFF"
+        android:paddingTop="4dp" />
+
+</RelativeLayout>
