@@ -41,15 +41,44 @@
                                CornerRadius="10"
                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
                             <StackLayout>
+                                <!-- Source -->
                                 <Label Text="{Binding Source}"
                                        FontSize="Caption"
                                        TextColor="Gray" />
+
+                                <!-- Temperature (primary) -->
                                 <Label Text="{Binding TemperatureC, StringFormat='{0:F1}°C'}"
                                        FontSize="48"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+                                <!-- Humidity -->
+                                <Label FontSize="Body"
+                                       TextColor="Gray"
+                                       Margin="0,5,0,0">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Humidity: " />
+                                            <Span Text="{Binding Humidity, StringFormat='{0:F0}%', TargetNullValue='N/A'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Pressure -->
+                                <Label FontSize="Body"
+                                       TextColor="Gray">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Pressure: " />
+                                            <Span Text="{Binding PressureMb, StringFormat='{0:F1} mb', TargetNullValue='N/A'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Location -->
                                 <Label Text="{Binding Location}"
-                                       FontSize="Body" />
+                                       FontSize="Body"
+                                       Margin="0,5,0,0" />
                             </StackLayout>
                         </Frame>
                     </DataTemplate>
