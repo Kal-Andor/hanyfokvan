@@ -1,5 +1,8 @@
 using HanyFokVan.Api.Services;
 
+// Load environment variables from .env file (for local development)
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
