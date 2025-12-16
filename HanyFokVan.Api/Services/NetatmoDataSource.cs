@@ -384,7 +384,7 @@ public class NetatmoDataSource : IWeatherDataSource
                 {
                     _refreshToken = newRefreshToken;
                     // Note: In production, you'd want to persist this new refresh token
-                    _logger.LogInformation("[{Source}] Refresh token updated. New token: {Token}", SourceName, newRefreshToken);
+                    _logger.LogDebug("[{Source}] Refresh token updated", SourceName);
                 }
             }
 
