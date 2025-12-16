@@ -7,4 +7,5 @@ public class NearbyStation
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public double? DistanceKm { get; set; }
+    public string Source { get; set; } = string.Empty;
 }

@@ -9,4 +9,5 @@ public class StationObservation
     public double? Humidity { get; set; }        // Percentage (0-100)
     public double? PressureMb { get; set; }      // Millibars
     public string StationId { get; set; } = string.Empty;
+    public string Source { get; set; } = string.Empty;
 }
