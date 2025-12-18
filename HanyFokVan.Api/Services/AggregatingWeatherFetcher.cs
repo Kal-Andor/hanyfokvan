@@ -10,11 +10,16 @@ public class AggregatingWeatherFetcher : IWeatherFetcher
 {
     private readonly IEnumerable<IWeatherDataSource> _dataSources;
     private readonly ILogger<AggregatingWeatherFetcher> _logger;
+    private readonly IGeocodingService? _geocodingService;
 
-    public AggregatingWeatherFetcher(IEnumerable<IWeatherDataSource> dataSources, ILogger<AggregatingWeatherFetcher> logger)
+    public AggregatingWeatherFetcher(
+        IEnumerable<IWeatherDataSource> dataSources,
+        ILogger<AggregatingWeatherFetcher> logger,
+        IGeocodingService? geocodingService = null)
     {
         _dataSources = dataSources;
         _logger = logger;
+        _geocodingService = geocodingService;
     }
 
     public async Task<List<WeatherData>> FetchCurrentWeatherAsync(double? latitude = null, double? longitude = null, CancellationToken cancellationToken = default)
@@ -67,7 +72,7 @@ public class AggregatingWeatherFetcher : IWeatherFetcher
 
         if (allObservations.Count != 0)
         {
-            var weatherData = AggregateObservations(allObservations, lat, lon, sourceCounts);
+            var weatherData = await AggregateObservationsAsync(allObservations, lat, lon, sourceCounts, cancellationToken);
             return [weatherData];
         }
 
@@ -105,7 +110,12 @@ public class AggregatingWeatherFetcher : IWeatherFetcher
         return allStations.OrderBy(s => s.DistanceKm ?? double.MaxValue).ToList();
     }
 
-    private WeatherData AggregateObservations(List<StationObservation> observations, double lat, double lon, Dictionary<string, int> sourceCounts)
+    private async Task<WeatherData> AggregateObservationsAsync(
+        List<StationObservation> observations,
+        double lat,
+        double lon,
+        Dictionary<string, int> sourceCounts,
+        CancellationToken cancellationToken)
     {
         var temperatures = observations.Select(o => o.TemperatureC)
                                       .Where(t => t.HasValue)
@@ -120,15 +130,26 @@ public class AggregatingWeatherFetcher : IWeatherFetcher
         var culture = System.Globalization.CultureInfo.InvariantCulture;
         bool isDefault = Math.Abs(lat - 46.30) < 0.0001 && Math.Abs(lon - 25.30) < 0.0001;
 
-        string locationLabel = isDefault
-            ? "Odorheiu Secuiesc"
-            : $"{lat.ToString("F4", culture)},{lon.ToString("F4", culture)}";
+        // Get location label - use hardcoded name for default, geocode for others
+        string locationLabel;
+        if (isDefault)
+        {
+            locationLabel = "Odorheiu Secuiesc";
+        }
+        else
+        {
+            // Try reverse geocoding, fall back to coordinates
+            var cityName = _geocodingService != null
+                ? await _geocodingService.GetCityNameAsync(lat, lon, cancellationToken)
+                : null;
+            locationLabel = cityName ?? $"{lat.ToString("F4", culture)},{lon.ToString("F4", culture)}";
+        }
 
         // Build source description showing count from each source
         var sourceDetails = string.Join(", ", sourceCounts.Select(kv => $"{kv.Value} {kv.Key}"));
         string sourceLabel = isDefault
             ? $"Odorheiu Secuiesc (Mean of {temperatures.Count} stations: {sourceDetails})"
-            : $"Nearby mean (Mean of {temperatures.Count} stations: {sourceDetails})";
+            : $"{locationLabel} (Mean of {temperatures.Count} stations: {sourceDetails})";
 
         return new WeatherData
         {
